@@ -156,6 +156,9 @@ struct custom_option custom_opts[] = {
     { { "macvlan_vs_nm", required_argument, NULL, 0x702 }, "Netmask of the 'vs' interface (e.g. \"255.255.255.0\")" },
     { { "macvlan_vs_gw", required_argument, NULL, 0x703 }, "Default GW for the 'vs' interface (e.g. \"192.168.0.1\")" },
     { { "macvlan_vs_ma", required_argument, NULL, 0x705 }, "MAC-address of the 'vs' interface (e.g. \"ba:ad:ba:be:45:00\")" },
+    { { "memory_reporting_file", required_argument, NULL, 0x1000}, "Enable monitoring of memory usage, outputting the results to the provided file (requires cgroupsv2 and a memory limit set, so that a separate cgroup is created)" },
+    { { "monitor_metric", required_argument, NULL, 0x1001}, "Cgroup Metric to monitor (requires cgroupv2)" },
+    { { "monitor_sample_period", required_argument, NULL, 0x1002}, "Time in milliseconds between samples of memory.current (default: 50ms)"}
 };
 // clang-format on
 
@@ -452,6 +455,8 @@ std::unique_ptr<nsjconf_t> parseArgs(int argc, char* argv[]) {
 	nsjconf->seccomp_fprog.len = 0;
 	nsjconf->seccomp_log = false;
 	nsjconf->nice_level = 19;
+	nsjconf->monitor_reporting_file = "";
+	nsjconf->monitor_sample_period = 50;
 
 	nsjconf->openfds.push_back(STDIN_FILENO);
 	nsjconf->openfds.push_back(STDOUT_FILENO);
@@ -853,6 +858,15 @@ std::unique_ptr<nsjconf_t> parseArgs(int argc, char* argv[]) {
 			break;
 		case 0x903:
 			nsjconf->nice_level = (int)strtol(optarg, NULL, 0);
+			break;
+		case 0x1000:
+			nsjconf->monitor_reporting_file = optarg;
+			break;
+		case 0x1001:
+			nsjconf->monitor_metric.push_back(optarg);
+			break;
+		case 0x1002:
+			nsjconf->monitor_sample_period = (int)strtol(optarg, NULL, 0);
 			break;
 		default:
 			cmdlineUsage(argv[0]);

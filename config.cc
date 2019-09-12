@@ -283,6 +283,12 @@ static bool configParseInternal(nsjconf_t* nsjconf, const nsjail::NsJailConfig& 
 		nsjconf->use_execveat = njc.exec_bin().exec_fd();
 	}
 
+	nsjconf->monitor_reporting_file = njc.monitor_reporting_file();
+	for (ssize_t i = 0; i < njc.monitor_metric().size(); i++) {
+		nsjconf->monitor_metric.push_back(njc.monitor_metric().Get(i));
+	}
+	nsjconf->monitor_sample_period = njc.monitor_sample_period();
+
 	return true;
 }
 

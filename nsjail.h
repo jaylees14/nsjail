@@ -146,6 +146,8 @@ struct nsjconf_t {
 	struct sock_fprog seccomp_fprog;
 	bool seccomp_log;
 	int nice_level;
+	std::string monitor_reporting_file;
+	int monitor_sample_period;
 	long num_cpus;
 	uid_t orig_uid;
 	uid_t orig_euid;
@@ -157,6 +159,7 @@ struct nsjconf_t {
 	std::vector<int> openfds;
 	std::vector<int> caps;
 	std::vector<std::string> ifaces;
+	std::vector<std::string> monitor_metric;
 };
 
 #endif /* _NSJAIL_H */

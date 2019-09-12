@@ -30,12 +30,14 @@
 #include <sys/time.h>
 #include <termios.h>
 #include <unistd.h>
+#include <thread>
 
 #include <memory>
 
 #include "cmdline.h"
 #include "logs.h"
 #include "macros.h"
+#include "monitor.h"
 #include "net.h"
 #include "sandbox.h"
 #include "subproc.h"
@@ -146,14 +148,37 @@ static int standaloneMode(nsjconf_t* nsjconf) {
 			LOG_E("Couldn't launch the child process");
 			return 0xff;
 		}
+
+		std::thread monitoring_thread;
+		monitor::monitorconf_t mc;
+
+		if (!nsjconf->monitor_reporting_file.empty() && !nsjconf->monitor_metric.empty() &&
+		    nsjconf->use_cgroupv2) {
+			mc.should_finish = false;
+			mc.output_file_path = nsjconf->monitor_reporting_file;
+			mc.pid = nsjconf->pids[0].pid;
+			mc.cgroup_mount = nsjconf->cgroupv2_mount;
+			mc.sample_time_ms = nsjconf->monitor_sample_period;
+			mc.metrics = nsjconf->monitor_metric;
+
+			monitoring_thread = std::thread(monitor::monitorMemory, &mc);
+		}
+
 		for (;;) {
 			int child_status = subproc::reapProc(nsjconf);
 			if (subproc::countProc(nsjconf) == 0) {
+				if (!nsjconf->monitor_reporting_file.empty() &&
+				    nsjconf->use_cgroupv2) {
+					monitor::finishMonitoring(&mc);
+					monitoring_thread.join();
+				}
+
 				if (nsjconf->mode == MODE_STANDALONE_ONCE) {
 					return child_status;
 				}
 				break;
 			}
+
 			if (showProc) {
 				showProc = false;
 				subproc::displayProc(nsjconf);

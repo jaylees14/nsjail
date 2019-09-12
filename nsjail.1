@@ -276,6 +276,15 @@ Default GW for the 'vs' interface (e.g. "192.168.0.1")
 .TP
 \fB\-\-macvlan_vs_ma\fR VALUE
 MAC-address of the 'vs' interface (e.g. "ba:ad:ba:be:45:00")
+.TP
+\fB\-\-monitor_reporting_file\fR VALUE
+Enable monitoring of memory usage, outputting the results to the provided file (requires cgroupsv2)
+.TP
+\fB\-\-monitor_metric\fR VALUE
+cgroup metric to monitor (requires cgroupsv2)
+.TP
+\fB\-\-monitor_sample_period\fR VALUE
+Time in milliseconds between samples of memory.current (default: 50ms)
 \"
 .SH Examples
 .PP
